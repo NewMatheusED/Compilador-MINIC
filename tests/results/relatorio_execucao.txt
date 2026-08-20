@@ -1,0 +1,24 @@
+Relatorio de execucao da suite de testes - Analisador Lexico MINIC
+Data: 2026-08-20 23:29 UTC
+Compilador C: gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0
+Python: Python 3.10.12
+
+=== 1) testes de oraculo (valores calculados a mao, independentes do codigo) ===
+PASSOU [oraculo/C]
+PASSOU [oraculo/Python]
+
+=== 2) regressao e paridade C vs Python (examples/ vs tests/results/) ===
+PASSOU [validos/01_programa_completo]
+PASSOU [validos/02_fatorial_recursivo]
+PASSOU [validos/03_entrada_vetor_repeticao]
+PASSOU [validos/04_tipos_e_operadores]
+PASSOU [validos/05_comentarios]
+PASSOU [invalidos/01_simbolo_nao_reconhecido]
+PASSOU [invalidos/02_char_nao_terminado]
+PASSOU [invalidos/03_char_tamanho_invalido]
+PASSOU [invalidos/04_string_nao_terminada]
+PASSOU [invalidos/05_comentario_bloco_nao_terminado]
+PASSOU [invalidos/06_escape_desconhecido]
+PASSOU [invalidos/07_erros_mistos]
+
+resultado: 14 passaram, 0 falharam

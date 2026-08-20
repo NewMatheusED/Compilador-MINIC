@@ -1,0 +1,24 @@
+1:1	KW_INT	"int"
+1:5	ID	"main"
+1:9	LPAREN	"("
+1:10	RPAREN	")"
+1:12	LBRACE	"{"
+2:5	KW_CHAR	"char"
+2:10	ID	"c"
+2:12	ASSIGN	"="
+Erro lexico na linha 2, coluna 14:
+literal de caractere com tamanho invalido.
+2:14	CHAR_LIT	"'ab'"
+2:18	SEMI	";"
+3:5	KW_CHAR	"char"
+3:10	ID	"vazio"
+3:16	ASSIGN	"="
+Erro lexico na linha 3, coluna 18:
+literal de caractere com tamanho invalido.
+3:18	CHAR_LIT	"''"
+3:20	SEMI	";"
+4:5	KW_RETURN	"return"
+4:12	INT_LIT	"0"
+4:13	SEMI	";"
+5:1	RBRACE	"}"
+6:1	EOF	""

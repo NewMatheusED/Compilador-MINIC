@@ -1,0 +1,8 @@
+1:1	KW_INT	"int"
+1:5	ID	"main"
+1:9	LPAREN	"("
+1:10	RPAREN	")"
+1:12	LBRACE	"{"
+Erro lexico na linha 2, coluna 5:
+comentario de bloco nao terminado.
+6:1	EOF	""

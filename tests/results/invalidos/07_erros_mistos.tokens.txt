@@ -1,0 +1,37 @@
+1:1	KW_INT	"int"
+1:5	ID	"main"
+1:9	LPAREN	"("
+1:10	RPAREN	")"
+1:12	LBRACE	"{"
+2:5	KW_INT	"int"
+2:9	ID	"x"
+2:11	ASSIGN	"="
+2:13	INT_LIT	"5"
+Erro lexico na linha 2, coluna 15:
+simbolo "@" nao reconhecido.
+2:17	INT_LIT	"2"
+2:18	SEMI	";"
+3:5	KW_CHAR	"char"
+3:10	ID	"c"
+3:12	ASSIGN	"="
+Erro lexico na linha 3, coluna 14:
+literal de caractere com tamanho invalido.
+3:14	CHAR_LIT	"'ab'"
+3:18	SEMI	";"
+4:5	KW_CHAR	"char"
+4:10	ID	"d"
+4:12	ASSIGN	"="
+Erro lexico na linha 4, coluna 14:
+literal de caractere nao terminado.
+4:14	CHAR_LIT	"'x"
+5:5	ID	"string"
+5:12	ID	"s"
+5:14	ASSIGN	"="
+Erro lexico na linha 5, coluna 16:
+literal de cadeia nao terminado.
+5:16	STRING_LIT	""abc;"
+6:5	KW_RETURN	"return"
+6:12	INT_LIT	"0"
+6:13	SEMI	";"
+7:1	RBRACE	"}"
+8:1	EOF	""

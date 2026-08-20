@@ -1,0 +1,15 @@
+1:1	KW_INT	"int"
+1:5	ID	"main"
+1:9	LPAREN	"("
+1:10	RPAREN	")"
+1:12	LBRACE	"{"
+2:5	KW_PRINT	"print"
+2:10	LPAREN	"("
+Erro lexico na linha 2, coluna 11:
+literal de cadeia nao terminado.
+2:11	STRING_LIT	""mensagem sem fechamento);"
+3:5	KW_RETURN	"return"
+3:12	INT_LIT	"0"
+3:13	SEMI	";"
+4:1	RBRACE	"}"
+5:1	EOF	""

@@ -1,0 +1,24 @@
+1:1	KW_INT	"int"
+1:5	ID	"main"
+1:9	LPAREN	"("
+1:10	RPAREN	")"
+1:12	LBRACE	"{"
+2:5	KW_CHAR	"char"
+2:10	ID	"c"
+2:12	ASSIGN	"="
+Erro lexico na linha 2, coluna 16:
+sequencia de escape desconhecida "\q".
+2:14	CHAR_LIT	"'\q'"
+2:18	SEMI	";"
+3:5	KW_PRINT	"print"
+3:10	LPAREN	"("
+Erro lexico na linha 3, coluna 28:
+sequencia de escape desconhecida "\z".
+3:11	STRING_LIT	""linha invalida \z aqui""
+3:35	RPAREN	")"
+3:36	SEMI	";"
+4:5	KW_RETURN	"return"
+4:12	INT_LIT	"0"
+4:13	SEMI	";"
+5:1	RBRACE	"}"
+6:1	EOF	""

@@ -1,0 +1,34 @@
+1:1	KW_INT	"int"
+1:5	ID	"main"
+1:9	LPAREN	"("
+1:10	RPAREN	")"
+1:12	LBRACE	"{"
+2:5	KW_INT	"int"
+2:9	ID	"x"
+2:11	ASSIGN	"="
+2:13	INT_LIT	"5"
+Erro lexico na linha 2, coluna 15:
+simbolo "@" nao reconhecido.
+2:17	INT_LIT	"3"
+2:18	SEMI	";"
+3:5	KW_INT	"int"
+3:9	ID	"y"
+3:11	ASSIGN	"="
+3:13	INT_LIT	"2"
+Erro lexico na linha 3, coluna 15:
+simbolo "#" nao reconhecido.
+3:17	INT_LIT	"1"
+3:18	SEMI	";"
+4:5	KW_INT	"int"
+4:9	ID	"z"
+4:11	ASSIGN	"="
+4:13	ID	"x"
+Erro lexico na linha 4, coluna 15:
+simbolo "$" nao reconhecido.
+4:17	ID	"y"
+4:18	SEMI	";"
+5:5	KW_RETURN	"return"
+5:12	INT_LIT	"0"
+5:13	SEMI	";"
+6:1	RBRACE	"}"
+7:1	EOF	""
