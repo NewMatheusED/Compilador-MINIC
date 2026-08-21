@@ -1,0 +1,20 @@
+{"token": "KW_INT", "lexeme": "int", "line": 1, "column": 1}
+{"token": "ID", "lexeme": "main", "line": 1, "column": 5}
+{"token": "LPAREN", "lexeme": "(", "line": 1, "column": 9}
+{"token": "RPAREN", "lexeme": ")", "line": 1, "column": 10}
+{"token": "LBRACE", "lexeme": "{", "line": 1, "column": 12}
+{"token": "KW_CHAR", "lexeme": "char", "line": 2, "column": 5}
+{"token": "ID", "lexeme": "c", "line": 2, "column": 10}
+{"token": "ASSIGN", "lexeme": "=", "line": 2, "column": 12}
+{"token": "CHAR_LIT", "lexeme": "'\\q'", "line": 2, "column": 14}
+{"token": "SEMI", "lexeme": ";", "line": 2, "column": 18}
+{"token": "KW_PRINT", "lexeme": "print", "line": 3, "column": 5}
+{"token": "LPAREN", "lexeme": "(", "line": 3, "column": 10}
+{"token": "STRING_LIT", "lexeme": "\"linha invalida \\z aqui\"", "line": 3, "column": 11}
+{"token": "RPAREN", "lexeme": ")", "line": 3, "column": 35}
+{"token": "SEMI", "lexeme": ";", "line": 3, "column": 36}
+{"token": "KW_RETURN", "lexeme": "return", "line": 4, "column": 5}
+{"token": "INT_LIT", "lexeme": "0", "line": 4, "column": 12}
+{"token": "SEMI", "lexeme": ";", "line": 4, "column": 13}
+{"token": "RBRACE", "lexeme": "}", "line": 5, "column": 1}
+{"token": "EOF", "lexeme": "", "line": 6, "column": 1}

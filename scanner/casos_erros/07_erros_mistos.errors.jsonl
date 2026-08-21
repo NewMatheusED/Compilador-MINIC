@@ -1,0 +1,4 @@
+{"error": "lexico", "message": "simbolo \"@\" nao reconhecido", "line": 2, "column": 15}
+{"error": "lexico", "message": "literal de caractere com tamanho invalido", "line": 3, "column": 14}
+{"error": "lexico", "message": "literal de caractere nao terminado", "line": 4, "column": 14}
+{"error": "lexico", "message": "literal de cadeia nao terminado", "line": 5, "column": 16}

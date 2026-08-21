@@ -2,11 +2,19 @@
 
 Trabalho de Compiladores - Etapa 1.
 
+## Integrantes
+- Matheus Eduardo
+- Gustavo Boschini
+- Gabriel Martins
+- Vinicius Dias
+- Rafael Nesterur
+
 ## Estrutura
 
 - `src/lexer/` - código do lexer (C e Python)
 - `examples/validos/` e `examples/invalidos/` - programas de teste
 - `tests/` - script que roda os testes e os resultados obtidos
+- `scanner/` - mesma coisa, mas no formato exigido pelo script de correção que o professor mandou (`scanner.c`/`scanner.py` únicos, saída em JSON Lines, testes em `.minic`). Ver `scanner/README.md`.
 
 As pastas `src/parser`, `src/semantic`, `src/ir` etc. estão vazias por enquanto, reservadas para as próximas etapas do trabalho.
 
@@ -45,3 +53,9 @@ Para conferir os resultados reais, basta rodar os arquivos em `examples/`. O arq
 - `0` - compilou sem erro léxico
 - `1` - uso errado (arquivo não encontrado, etc)
 - `2` - erro léxico encontrado
+
+## Scanner
+
+Tive que implementar isso logo após sua aula do dia 20/08.
+A estrutura que tinha feito era baseada em flag e retornando texto, o script que foi enviado exige JSON... fiquei com do de apagar os testes e a estrutura antiga que tinha feito, então fiz um scanner separado, que está na pasta `scanner/`.
+De qualquer forma, espero um retorno na tarefa para ver qual prefere manter, a logica do lexer em C e Python é a mesma, só muda a saída.

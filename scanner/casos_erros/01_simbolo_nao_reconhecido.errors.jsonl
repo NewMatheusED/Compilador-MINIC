@@ -1,0 +1,3 @@
+{"error": "lexico", "message": "simbolo \"@\" nao reconhecido", "line": 2, "column": 15}
+{"error": "lexico", "message": "simbolo \"#\" nao reconhecido", "line": 3, "column": 15}
+{"error": "lexico", "message": "simbolo \"$\" nao reconhecido", "line": 4, "column": 15}

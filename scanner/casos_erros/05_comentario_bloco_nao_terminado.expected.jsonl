@@ -1,0 +1,6 @@
+{"token": "KW_INT", "lexeme": "int", "line": 1, "column": 1}
+{"token": "ID", "lexeme": "main", "line": 1, "column": 5}
+{"token": "LPAREN", "lexeme": "(", "line": 1, "column": 9}
+{"token": "RPAREN", "lexeme": ")", "line": 1, "column": 10}
+{"token": "LBRACE", "lexeme": "{", "line": 1, "column": 12}
+{"token": "EOF", "lexeme": "", "line": 6, "column": 1}
