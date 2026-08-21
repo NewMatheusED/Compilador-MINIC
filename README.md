@@ -3,11 +3,12 @@
 Trabalho de Compiladores - Etapa 1.
 
 ## Integrantes
-- Matheus Eduardo
-- Gustavo Boschini
-- Gabriel Martins
-- Vinicius Dias
-- Rafael Nesterur
+- Matheus Eduardo - 2400866
+- Gustavo Boschini - 2401529
+- Gabriel Martins - 2401250
+- Vinicius Dias - 2401453
+- Rafael Nesterur - 2401203
+- Luisa de Souza - 2401104
 
 ## Estrutura
 
