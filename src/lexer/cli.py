@@ -1,6 +1,6 @@
 import sys
 
-from lexer import Lexer, TokenType
+from lexer import Lexer, TokenType, formatar_erro_lexico
 
 
 def main(argv):
@@ -24,8 +24,8 @@ def main(argv):
         print(f'erro: nao foi possivel abrir o arquivo "{path}"', file=sys.stderr)
         return 1
 
-    def on_error(msg):
-        print(msg, end="")
+    def on_error(msg, line, col):
+        print(formatar_erro_lexico(msg, line, col), end="")
 
     lx = Lexer(source, on_error=on_error)
 

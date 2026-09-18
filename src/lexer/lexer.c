@@ -31,8 +31,20 @@ static int at_end(Lexer *lx) {
     return lx->pos >= lx->len;
 }
 
-static void report_error(Lexer *lx, int line, int col, const char *msg) {
+void lexer_default_error_sink(const char *msg, int line, int col) {
     printf("Erro lexico na linha %d, coluna %d:\n%s.\n", line, col, msg);
+}
+
+void lexer_set_error_sink(Lexer *lx, LexerErrorSink sink) {
+    lx->on_error = sink;
+}
+
+static void report_error(Lexer *lx, int line, int col, const char *msg) {
+    if (lx->on_error) {
+        lx->on_error(msg, line, col);
+    } else {
+        lexer_default_error_sink(msg, line, col);
+    }
     lx->error_count++;
 }
 
@@ -248,6 +260,7 @@ void lexer_init(Lexer *lx, const char *src) {
     lx->line = 1;
     lx->col = 1;
     lx->error_count = 0;
+    lx->on_error = NULL;
 }
 
 Token lexer_next_token(Lexer *lx) {

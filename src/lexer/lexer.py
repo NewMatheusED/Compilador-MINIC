@@ -99,7 +99,16 @@ class Token:
 
 
 class LexicalError(Exception):
-    """Usado apenas internamente para sinalizar diagnosticos formatados"""
+    """Usado apenas internamente para sinalizar diagnosticos formatados."""
+
+
+def formatar_erro_lexico(msg: str, line: int, col: int) -> str:
+    """Formato textual da especificacao (secao 12).
+
+    Fica aqui, e nao no callback, para que todos os front-ends (cli.py,
+    scanner.py, parser.py) produzam exatamente a mesma mensagem.
+    """
+    return f"Erro lexico na linha {line}, coluna {col}:\n{msg}.\n"
 
 
 class Lexer:
@@ -110,7 +119,8 @@ class Lexer:
         self.line = 1
         self.col = 1
         self.error_count = 0
-        # callback(mensagem_formatada) chamado a cada diagnostico
+        # callback(mensagem, linha, coluna) chamado a cada diagnostico.
+        # Cada front-end decide como formatar (texto, JSON, etc).
         self._on_error = on_error
 
     def _peek(self, offset: int = 0) -> str:
@@ -133,10 +143,9 @@ class Lexer:
         return self.pos >= self.len
 
     def _report(self, line: int, col: int, msg: str) -> None:
-        formatted = f"Erro lexico na linha {line}, coluna {col}:\n{msg}.\n"
         self.error_count += 1
         if self._on_error:
-            self._on_error(formatted)
+            self._on_error(msg, line, col)
 
 
     def _skip_whitespace_and_comments(self) -> None:

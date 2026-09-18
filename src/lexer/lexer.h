@@ -43,6 +43,10 @@ typedef struct {
     int col;
 } Token;
 
+/* Callback chamado a cada diagnostico lexico. Cada front-end decide o
+ * formato (texto da especificacao, JSON Lines, ou nenhum). */
+typedef void (*LexerErrorSink)(const char *msg, int line, int col);
+
 typedef struct {
     const char *src;
     size_t pos;
@@ -50,9 +54,17 @@ typedef struct {
     int line;
     int col;
     int error_count;
+    LexerErrorSink on_error;
 } Lexer;
 
 void lexer_init(Lexer *lx, const char *src);
+
+/* Troca o destino dos diagnosticos. Sem chamada, vale o formato textual
+ * da especificacao (secao 12), impresso na saida padrao. */
+void lexer_set_error_sink(Lexer *lx, LexerErrorSink sink);
+
+/* Formato textual padrao, exposto para quem quiser reaproveitar. */
+void lexer_default_error_sink(const char *msg, int line, int col);
 
 /* Retorna o proximo token. Erros lexicos sao reportados em stdout no
  * formato definido pela especificacao (secao 12) e o scanner tenta se

@@ -9,7 +9,7 @@ from lexer import Lexer, TokenType  # noqa: E402
 
 def tokenize(source):
     errors = []
-    lx = Lexer(source, on_error=lambda msg: errors.append(msg))
+    lx = Lexer(source, on_error=lambda msg, line, col: errors.append(msg))
     tokens = lx.tokenize()
     # representa cada token como (tipo, lexema, linha, coluna) pra comparar
     # facil com uma lista escrita a mao
