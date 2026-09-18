@@ -1,0 +1,2 @@
+{"error": "lexico", "message": "sequencia de escape desconhecida \"\\q\"", "line": 2, "column": 16}
+{"error": "lexico", "message": "sequencia de escape desconhecida \"\\z\"", "line": 3, "column": 28}

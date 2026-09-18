@@ -1,0 +1,13 @@
+{"token": "KW_INT", "lexeme": "int", "line": 1, "column": 1}
+{"token": "ID", "lexeme": "main", "line": 1, "column": 5}
+{"token": "LPAREN", "lexeme": "(", "line": 1, "column": 9}
+{"token": "RPAREN", "lexeme": ")", "line": 1, "column": 10}
+{"token": "LBRACE", "lexeme": "{", "line": 1, "column": 12}
+{"token": "KW_PRINT", "lexeme": "print", "line": 2, "column": 5}
+{"token": "LPAREN", "lexeme": "(", "line": 2, "column": 10}
+{"token": "STRING_LIT", "lexeme": "\"mensagem sem fechamento);", "line": 2, "column": 11}
+{"token": "KW_RETURN", "lexeme": "return", "line": 3, "column": 5}
+{"token": "INT_LIT", "lexeme": "0", "line": 3, "column": 12}
+{"token": "SEMI", "lexeme": ";", "line": 3, "column": 13}
+{"token": "RBRACE", "lexeme": "}", "line": 4, "column": 1}
+{"token": "EOF", "lexeme": "", "line": 5, "column": 1}
