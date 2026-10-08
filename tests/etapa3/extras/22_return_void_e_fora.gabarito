@@ -1,0 +1,4 @@
+SEM010 — linha 2, coluna 12: A função “nada” tem retorno void e não pode retornar valor (expressão “1”).
+SEM010 — linha 5, coluna 5: A função “conta” deve retornar int, mas o return não fornece valor.
+SEM010 — linha 7, coluna 1: Comando return fora de função.
+Análise semântica concluída: 3 erros; programa rejeitado.

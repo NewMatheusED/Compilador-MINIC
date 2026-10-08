@@ -1,6 +1,6 @@
 # Compilador MINIC
 
-Trabalho de Compiladores - Etapas 1 e 2 (analisador léxico e analisador sintático).
+Trabalho de Compiladores - Etapas 1, 2 e 3 (analisador léxico, analisador sintático e analisador semântico).
 
 ## Integrantes
 
@@ -15,14 +15,17 @@ Trabalho de Compiladores - Etapas 1 e 2 (analisador léxico e analisador sintát
 
 - `scanner.py` e `scanner.c` - entrega da etapa 1, saída em JSON Lines
 - `parser.py` e `parser.c` - entrega da etapa 2, saída com a AST
+- `minic.py` e `minic.c` - entrega da etapa 3, saída com os diagnósticos semânticos
 - `src/lexer/` - o lexer de verdade, em C e Python
 - `src/parser/` - a AST e o parser, em C e Python
+- `src/semantic/` - o analisador semântico, em C e Python
 - `examples/` - programas `.mc` de exemplo, válidos e inválidos
 - `tests/etapa1/` - casos e scripts de correção do léxico
 - `tests/etapa2/` - os 50 casos e scripts do sintático
+- `tests/etapa3/` - os 20 casos e scripts do semântico, mais 9 casos extras nossos em `tests/etapa3/extras/`
 - `tests/run_tests.sh` - compara a saída do C com a do Python
 
-As pastas `src/semantic`, `src/ir`, `src/codegen` e `src/optimizer` continuam vazias, reservadas pras próximas etapas.
+As pastas `src/ir`, `src/codegen` e `src/optimizer` continuam vazias, reservadas pras próximas etapas.
 
 Na entrega passada eu tinha duas cópias do lexer, uma em `src/lexer/` e outra dentro de `scanner/`, porque o script de correção compila um arquivo só e eu não quis jogar fora a estrutura antiga. Isso ficou ruim de manter: qualquer correção tinha que ser feita em dois lugares. Agora o lexer está num lugar só, e o`scanner.c` e o `parser.c` da raiz só fazem `#include` dos módulos de `src/`. Continua compilando com um `gcc` só, como os scripts pedem, mas sem código duplicado. Em Python é a mesma ideia, os arquivos da raiz só importam de `src/`.
 
@@ -35,6 +38,7 @@ Python, sem compilar nada:
 ```
 python scanner.py examples/validos/02_fatorial_recursivo.mc
 python parser.py tests/etapa2/testes-parser-50/casos/25_programa_integrado/codigo.c
+python minic.py tests/etapa3/minic-testes-semanticos/19_retorno_e_cobertura.c
 ```
 
 C:
@@ -42,11 +46,13 @@ C:
 ```
 gcc -Wall -Wextra -std=c11 scanner.c -o scanner
 gcc -Wall -Wextra -std=c11 parser.c -o parser
+gcc -Wall -Wextra -std=c11 minic.c -o minic
 ./scanner examples/validos/02_fatorial_recursivo.mc
 ./parser tests/etapa2/testes-parser-50/casos/25_programa_integrado/codigo.c
+./minic tests/etapa3/minic-testes-semanticos/19_retorno_e_cobertura.c
 ```
 
-Com `make` instalado dá pra usar `make`, `make scanner`, `make parser` e `make test`.
+Com `make` instalado dá pra usar `make`, `make scanner`, `make parser`, `make minic` e `make test`.
 
 Pra ver os tokens em texto durante o desenvolvimento, que foi como eu comecei na etapa 1, o driver antigo continua lá:
 
@@ -62,7 +68,7 @@ Continuo usando WSL, por isso os `.sh`. Nos computadores da faculdade dá pra ro
 make test
 ```
 
-Isso roda três coisas: a comparação C contra Python em cima de `examples/`, os scripts de correção do léxico, e os 50 casos do sintático.
+Isso roda quatro coisas: a comparação C contra Python em cima de `examples/`, os scripts de correção do léxico, os 50 casos do sintático e os scripts de correção do semântico (casos do professor e os extras).
 
 Como está agora:
 
@@ -71,8 +77,17 @@ Como está agora:
 - etapa 1, `scanner.c`: 13 OK, 0 falharam
 - etapa 2, `parser.py`: 49 OK, 1 problema de gabarito
 - etapa 2, `parser.c`: 49 OK, 1 problema de gabarito
+- etapa 3, `minic.py`: 20/20 aprovados (e 9/9 nos extras)
+- etapa 3, `minic.c`: 20/20 aprovados (e 9/9 nos extras)
 
-O C e o Python dão exatamente a mesma saída nos 50 casos, byte a byte.
+O C e o Python dão exatamente a mesma saída nos 50 casos do sintático e nos 29 do semântico, byte a byte.
+
+Os scripts da etapa 3 são os do professor, sem alteração:
+
+```
+./tests/etapa3/testes_semanticos_py.sh minic.py tests/etapa3/minic-testes-semanticos
+./tests/etapa3/testes_semanticos_c.sh minic.c tests/etapa3/minic-testes-semanticos
+```
 
 Os 7 "avisos" na etapa 1 são os casos de erro léxico, onde o scanner sai com código 2 como manda a seção 11.1 da especificação. O script conta isso como aviso e termina com código 1 mesmo com zero falhas, por isso o `make` ignora o código de saída dele.
 
@@ -106,7 +121,7 @@ programa    -> item*
 item        -> funcao | decl_var | comando
 funcao      -> TIPO IDENT '(' params ')' bloco
 params      -> vazio | param (',' param)*
-param       -> TIPO IDENT
+param       -> TIPO IDENT ('[' ']')?
 decl_var    -> TIPO IDENT ('[' expr ']')? ('=' expr)? ';'
 comando     -> bloco | se | enquanto | retorno | decl_var | expr ';'
 bloco       -> '{' comando* '}'
@@ -131,10 +146,13 @@ Três decisões que eu tomei olhando os 50 casos, caso seja diferente do esperad
 
 - o nível global aceita comando, não só declaração, por causa do caso 22, que tem `a = b = 3;` fora de qualquer função
 - função sem corpo é erro, então protótipo não entra, por causa do caso 48
-- o `=` só vira atribuição quando o lado esquerdo é `Id` ou `Index`. É isso que faz o caso 41, `a[1 = 2;`, reclamar do colchete em vez de reclamar da atribuição, que é o que a pista do gabarito pede
+- o `=` aceita qualquer lado esquerdo, e quem verifica se ele é atribuível é o semântico (SEM013). Na etapa 2 eu tinha restringido a `Id`/`Index` no parser, mas o teste 20 da etapa 3 (`3 = n;`) espera erro semântico, não sintático. O caso 41, `a[1 = 2;`, continua reclamando de `esperado FECHA_COLCHETE`, como a pista pede, só que agora no `;`
+
+Na etapa 3 o parser também passou a aceitar parâmetro vetor (`int dados[]`, previsto na especificação e usado nos testes 04, 07 e 10) e todo nó da AST guarda linha e coluna de onde começa, pros diagnósticos. A impressão da AST não mudou.
 
 ## Códigos de saída
 
 - `0` - analisou sem erro
-- `1` - uso errado, arquivo não encontrado, ou erro sintático no parser
+- `1` - uso errado, arquivo não encontrado, ou erro sintático no parser (no `minic`, também erro léxico)
 - `2` - erro léxico no scanner
+- `3` - programa rejeitado pela análise semântica (só no `minic`)

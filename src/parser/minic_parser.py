@@ -10,7 +10,7 @@ Gramatica reconhecida:
     item        -> funcao | decl_var | comando
     funcao      -> TIPO IDENT '(' params ')' bloco
     params      -> vazio | param (',' param)*
-    param       -> TIPO IDENT
+    param       -> TIPO IDENT ('[' ']')?
     decl_var    -> TIPO IDENT ('[' expr ']')? ('=' expr)? ';'
     comando     -> bloco | se | enquanto | retorno | decl_var | expr_cmd
     bloco       -> '{' comando* '}'
@@ -35,9 +35,8 @@ Observacoes que vieram dos 50 casos de teste:
 
   - o nivel global aceita comandos, nao so declaracoes (caso 22);
   - funcao sem corpo (prototipo) e erro (caso 48);
-  - '=' so e tratado como atribuicao quando o lado esquerdo e um destino
-    valido (Id ou Index). Isso faz `a[1 = 2;` (caso 41) falhar reclamando
-    do colchete, e nao da atribuicao, como pede a pista do gabarito.
+  - '=' aceita qualquer lado esquerdo, o semantico que barra `3 = n;`
+    (SEM013). O caso 41 continua dando "esperado FECHA_COLCHETE".
 """
 
 from __future__ import annotations
@@ -116,6 +115,15 @@ INICIO_COMANDO = {
     TokenType.FLOAT_LIT, TokenType.CHAR_LIT, TokenType.STRING_LIT,
     TokenType.KW_TRUE, TokenType.KW_FALSE, TokenType.LPAREN,
     TokenType.MINUS, TokenType.PLUS, TokenType.NOT, TokenType.SEMI,
+}
+
+TIPOS_LITERAL = {
+    TokenType.INT_LIT: "int",
+    TokenType.FLOAT_LIT: "real",
+    TokenType.CHAR_LIT: "char",
+    TokenType.STRING_LIT: "string",
+    TokenType.KW_TRUE: "bool",
+    TokenType.KW_FALSE: "bool",
 }
 
 OPS_IGUALDADE = {TokenType.EQ: "==", TokenType.NEQ: "!="}
@@ -210,8 +218,10 @@ class Parser:
         return self.comando()
 
     def funcao(self) -> Function:
-        tipo = TIPOS[self.avancar().type]
-        nome = self.exigir(TokenType.ID, "IDENT").lexeme
+        tok_tipo = self.avancar()
+        tipo = TIPOS[tok_tipo.type]
+        tok_nome = self.exigir(TokenType.ID, "IDENT")
+        nome = tok_nome.lexeme
         self.exigir(TokenType.LPAREN, "ABRE_PAREN")
 
         params: List[Param] = []
@@ -228,7 +238,9 @@ class Parser:
             # `int f();` -- prototipo nao faz parte do subconjunto
             self.erro("esperado ABRE_CHAVE (funcao precisa de corpo)")
         corpo = self.bloco()
-        return Function(tipo, nome, params, corpo)
+        no = Function(tipo, nome, params, corpo)
+        no.nome_linha, no.nome_coluna = tok_nome.line, tok_nome.col
+        return no.em(tok_tipo.line, tok_tipo.col)
 
     def param(self, depois_de_virgula: bool = False) -> Param:
         tok = self.espiar()
@@ -237,12 +249,18 @@ class Parser:
                 self.erro(f"esperado tipo ({NOMES_TIPOS}) ou FECHA_PAREN")
             self.erro(f"esperado tipo ({NOMES_TIPOS})")
         tipo = TIPOS[self.avancar().type]
-        nome = self.exigir(TokenType.ID, "IDENT").lexeme
-        return Param(tipo, nome)
+        tok_nome = self.exigir(TokenType.ID, "IDENT")
+        vetor = False
+        if self.aceitar(TokenType.LBRACKET):
+            self.exigir(TokenType.RBRACKET, "FECHA_COLCHETE")
+            vetor = True
+        return Param(tipo, tok_nome.lexeme, vetor).em(tok_nome.line,
+                                                      tok_nome.col)
 
     def decl_var(self) -> VarDecl:
         tipo = TIPOS[self.avancar().type]
-        nome = self.exigir(TokenType.ID, "IDENT").lexeme
+        tok_nome = self.exigir(TokenType.ID, "IDENT")
+        nome = tok_nome.lexeme
 
         tamanho = None
         if self.aceitar(TokenType.LBRACKET):
@@ -258,7 +276,8 @@ class Parser:
             init = self.expr()
 
         self.exigir(TokenType.SEMI, "PONTO_E_VIRGULA")
-        return VarDecl(tipo, nome, tamanho, init)
+        return VarDecl(tipo, nome, tamanho, init).em(tok_nome.line,
+                                                      tok_nome.col)
 
     # ---- comandos --------------------------------------------------------
 
@@ -282,20 +301,20 @@ class Parser:
 
         expr = self.expr()
         self.exigir(TokenType.SEMI, "PONTO_E_VIRGULA")
-        return ExprStmt(expr)
+        return ExprStmt(expr).em(expr.linha, expr.coluna)
 
     def bloco(self) -> Block:
-        self.exigir(TokenType.LBRACE, "ABRE_CHAVE")
+        abre = self.exigir(TokenType.LBRACE, "ABRE_CHAVE")
         comandos: List[Node] = []
         while not self.conferir(TokenType.RBRACE):
             if self.conferir(TokenType.EOF):
                 self.erro("esperado FECHA_CHAVE")
             comandos.append(self.comando())
         self.avancar()
-        return Block(comandos)
+        return Block(comandos).em(abre.line, abre.col)
 
     def comando_if(self) -> If:
-        self.avancar()
+        kw = self.avancar()
         self.exigir(TokenType.LPAREN, "ABRE_PAREN")
         if self.conferir(TokenType.RPAREN):
             self.erro("esperado expressao na condicao")
@@ -303,24 +322,24 @@ class Parser:
         self.exigir(TokenType.RPAREN, "FECHA_PAREN")
         entao = self.comando()
         senao = self.comando() if self.aceitar(TokenType.KW_ELSE) else None
-        return If(cond, entao, senao)
+        return If(cond, entao, senao).em(kw.line, kw.col)
 
     def comando_while(self) -> While:
-        self.avancar()
+        kw = self.avancar()
         self.exigir(TokenType.LPAREN, "ABRE_PAREN")
         if self.conferir(TokenType.RPAREN):
             self.erro("esperado expressao na condicao")
         cond = self.expr()
         self.exigir(TokenType.RPAREN, "FECHA_PAREN")
-        return While(cond, self.comando())
+        return While(cond, self.comando()).em(kw.line, kw.col)
 
     def comando_return(self) -> Return:
-        self.avancar()
+        kw = self.avancar()
         if self.aceitar(TokenType.SEMI):
-            return Return(None)
+            return Return(None).em(kw.line, kw.col)
         valor = self.expr()
         self.exigir(TokenType.SEMI, "PONTO_E_VIRGULA")
-        return Return(valor)
+        return Return(valor).em(kw.line, kw.col)
 
     # ---- expressoes ------------------------------------------------------
 
@@ -329,17 +348,17 @@ class Parser:
 
     def atribuicao(self) -> Node:
         esq = self.logico_ou()
-        # So consome '=' se o lado esquerdo puder receber atribuicao.
-        if self.conferir(TokenType.ASSIGN) and isinstance(esq, (Id, Index)):
-            self.avancar()
-            return Assign(esq, self.atribuicao())
+        if self.aceitar(TokenType.ASSIGN):
+            return Assign(esq, self.atribuicao()).em(esq.linha, esq.coluna)
         return esq
 
     def _binaria(self, proximo, operadores):
         no = proximo()
         while self.espiar().type in operadores:
-            op = operadores[self.avancar().type]
-            no = Binary(op, no, proximo())
+            tok_op = self.avancar()
+            op = operadores[tok_op.type]
+            no = Binary(op, no, proximo()).em(no.linha, no.coluna)
+            no.op_linha, no.op_coluna = tok_op.line, tok_op.col
         return no
 
     def logico_ou(self) -> Node:
@@ -363,8 +382,9 @@ class Parser:
     def unaria(self) -> Node:
         tipo = self.espiar().type
         if tipo in OPS_UNARIO:
-            op = OPS_UNARIO[self.avancar().type]
-            return Unary(op, self.unaria())
+            tok_op = self.avancar()
+            op = OPS_UNARIO[tok_op.type]
+            return Unary(op, self.unaria()).em(tok_op.line, tok_op.col)
         return self.posfixa()
 
     def posfixa(self) -> Node:
@@ -379,13 +399,13 @@ class Parser:
                             self.erro("esperado expressao ou FECHA_PAREN")
                         args.append(self.expr())
                 self.exigir(TokenType.RPAREN, "FECHA_PAREN")
-                no = Call(no, args)
+                no = Call(no, args).em(no.linha, no.coluna)
             elif self.aceitar(TokenType.LBRACKET):
                 if self.conferir(TokenType.RBRACKET):
                     self.erro("esperado expressao no indice")
                 indice = self.expr()
                 self.exigir(TokenType.RBRACKET, "FECHA_COLCHETE")
-                no = Index(no, indice)
+                no = Index(no, indice).em(no.linha, no.coluna)
             else:
                 return no
 
@@ -393,17 +413,10 @@ class Parser:
         tok = self.espiar()
 
         if tok.type == TokenType.ID:
-            return Id(self.avancar().lexeme)
-        if tok.type == TokenType.INT_LIT:
-            return Lit("int", self.avancar().lexeme)
-        if tok.type == TokenType.FLOAT_LIT:
-            return Lit("real", self.avancar().lexeme)
-        if tok.type == TokenType.CHAR_LIT:
-            return Lit("char", self.avancar().lexeme)
-        if tok.type == TokenType.STRING_LIT:
-            return Lit("string", self.avancar().lexeme)
-        if tok.type in (TokenType.KW_TRUE, TokenType.KW_FALSE):
-            return Lit("bool", self.avancar().lexeme)
+            return Id(self.avancar().lexeme).em(tok.line, tok.col)
+        if tok.type in TIPOS_LITERAL:
+            tipo = TIPOS_LITERAL[tok.type]
+            return Lit(tipo, self.avancar().lexeme).em(tok.line, tok.col)
         if self.aceitar(TokenType.LPAREN):
             if self.conferir(TokenType.RPAREN):
                 self.erro("esperado expressao")

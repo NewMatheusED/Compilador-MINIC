@@ -25,7 +25,13 @@ from typing import List, Optional
 
 
 class Node:
-    """Base de todos os nos. Cada no sabe se imprimir."""
+    linha: int = 0
+    coluna: int = 0
+
+    def em(self, linha: int, coluna: int) -> "Node":
+        self.linha = linha
+        self.coluna = coluna
+        return self
 
     def render(self) -> str:  # pragma: no cover - sobrescrito nas subclasses
         raise NotImplementedError
@@ -68,6 +74,9 @@ class Binary(Node):
     op: str
     esq: Node
     dir: Node
+
+    op_linha: int = field(default=0, compare=False, repr=False)
+    op_coluna: int = field(default=0, compare=False, repr=False)
 
     def render(self) -> str:
         return f"Binary({self.op},{self.esq.render()},{self.dir.render()})"
@@ -134,9 +143,11 @@ class VarDecl(Node):
 class Param(Node):
     tipo: str
     nome: str
+    vetor: bool = False
 
     def render(self) -> str:
-        return f"{self.tipo} {self.nome}"
+        sufixo = "[]" if self.vetor else ""
+        return f"{self.tipo} {self.nome}{sufixo}"
 
 
 @dataclass
@@ -153,6 +164,9 @@ class Function(Node):
     nome: str
     params: List[Param]
     corpo: Block
+
+    nome_linha: int = field(default=0, compare=False, repr=False)
+    nome_coluna: int = field(default=0, compare=False, repr=False)
 
     def render(self) -> str:
         params = ",".join(p.render() for p in self.params)

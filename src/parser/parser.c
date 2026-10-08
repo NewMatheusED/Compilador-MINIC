@@ -120,6 +120,15 @@ static char *exigir_lexema(Parser *p, TokenType t, const char *esperado) {
     return tok.lexeme; /* transferido para o chamador */
 }
 
+static Token exigir_token(Parser *p, TokenType t, const char *esperado) {
+    if (!conferir(p, t)) {
+        char msg[128];
+        snprintf(msg, sizeof(msg), "esperado %s", esperado);
+        erro(p, msg);
+    }
+    return avancar(p);
+}
+
 static void exigir(Parser *p, TokenType t, const char *esperado) {
     char *lex = exigir_lexema(p, t, esperado);
     free(lex);
@@ -174,20 +183,28 @@ static AstNode *p_param(Parser *p, int depois_de_virgula) {
     }
     Token t = avancar(p);
     const char *tipo = nome_tipo(t.type);
-    char *nome = exigir_lexema(p, TOK_ID, "IDENT");
-    AstNode *no = ast_new(N_PARAM, tipo, nome);
-    free(nome);
+    Token nome = exigir_token(p, TOK_ID, "IDENT");
+    AstNode *no = ast_em(ast_new(N_PARAM, tipo, nome.lexeme),
+                         nome.line, nome.col);
+    token_free(&nome);
     token_free(&t);
+    if (aceitar(p, TOK_LBRACKET)) {
+        exigir(p, TOK_RBRACKET, "FECHA_COLCHETE");
+        no->vetor = 1;
+    }
     return no;
 }
 
 static AstNode *p_funcao(Parser *p) {
     Token t = avancar(p);
     const char *tipo = nome_tipo(t.type);
-    char *nome = exigir_lexema(p, TOK_ID, "IDENT");
+    Token nome = exigir_token(p, TOK_ID, "IDENT");
 
-    AstNode *no = ast_new(N_FUNCTION, tipo, nome);
-    free(nome);
+    AstNode *no = ast_em(ast_new(N_FUNCTION, tipo, nome.lexeme),
+                         t.line, t.col);
+    no->linha2 = nome.line;
+    no->coluna2 = nome.col;
+    token_free(&nome);
     token_free(&t);
 
     exigir(p, TOK_LPAREN, "ABRE_PAREN");
@@ -215,10 +232,11 @@ static AstNode *p_funcao(Parser *p) {
 static AstNode *p_decl_var(Parser *p) {
     Token t = avancar(p);
     const char *tipo = nome_tipo(t.type);
-    char *nome = exigir_lexema(p, TOK_ID, "IDENT");
+    Token nome = exigir_token(p, TOK_ID, "IDENT");
 
-    AstNode *no = ast_new(N_VARDECL, tipo, nome);
-    free(nome);
+    AstNode *no = ast_em(ast_new(N_VARDECL, tipo, nome.lexeme),
+                         nome.line, nome.col);
+    token_free(&nome);
     token_free(&t);
 
     ast_add(no, NULL); /* kids[0]: tamanho  */
@@ -245,9 +263,9 @@ static AstNode *p_decl_var(Parser *p) {
 
 static AstNode *p_comando_if(Parser *p) {
     Token kw = avancar(p);
+    AstNode *no = ast_em(ast_new(N_IF, NULL, NULL), kw.line, kw.col);
     token_free(&kw);
 
-    AstNode *no = ast_new(N_IF, NULL, NULL);
     exigir(p, TOK_LPAREN, "ABRE_PAREN");
     if (conferir(p, TOK_RPAREN)) erro(p, "esperado expressao na condicao");
     ast_add(no, p_expr(p));
@@ -259,9 +277,9 @@ static AstNode *p_comando_if(Parser *p) {
 
 static AstNode *p_comando_while(Parser *p) {
     Token kw = avancar(p);
+    AstNode *no = ast_em(ast_new(N_WHILE, NULL, NULL), kw.line, kw.col);
     token_free(&kw);
 
-    AstNode *no = ast_new(N_WHILE, NULL, NULL);
     exigir(p, TOK_LPAREN, "ABRE_PAREN");
     if (conferir(p, TOK_RPAREN)) erro(p, "esperado expressao na condicao");
     ast_add(no, p_expr(p));
@@ -272,9 +290,9 @@ static AstNode *p_comando_while(Parser *p) {
 
 static AstNode *p_comando_return(Parser *p) {
     Token kw = avancar(p);
+    AstNode *no = ast_em(ast_new(N_RETURN, NULL, NULL), kw.line, kw.col);
     token_free(&kw);
 
-    AstNode *no = ast_new(N_RETURN, NULL, NULL);
     if (aceitar(p, TOK_SEMI)) {
         ast_add(no, NULL);
         return no;
@@ -285,8 +303,9 @@ static AstNode *p_comando_return(Parser *p) {
 }
 
 static AstNode *p_bloco(Parser *p) {
-    exigir(p, TOK_LBRACE, "ABRE_CHAVE");
-    AstNode *no = ast_new(N_BLOCK, NULL, NULL);
+    Token abre = exigir_token(p, TOK_LBRACE, "ABRE_CHAVE");
+    AstNode *no = ast_em(ast_new(N_BLOCK, NULL, NULL), abre.line, abre.col);
+    token_free(&abre);
     while (!conferir(p, TOK_RBRACE)) {
         if (conferir(p, TOK_EOF)) erro(p, "esperado FECHA_CHAVE");
         ast_add(no, p_comando(p));
@@ -311,8 +330,10 @@ static AstNode *p_comando(Parser *p) {
         erro(p, "esperado inicio de statement");
     }
 
-    AstNode *no = ast_new(N_EXPRSTMT, NULL, NULL);
-    ast_add(no, p_expr(p));
+    AstNode *expr = p_expr(p);
+    AstNode *no = ast_em(ast_new(N_EXPRSTMT, NULL, NULL),
+                         expr->linha, expr->coluna);
+    ast_add(no, expr);
     exigir(p, TOK_SEMI, "PONTO_E_VIRGULA");
     return no;
 }
@@ -323,8 +344,11 @@ static AstNode *p_comando(Parser *p) {
 
 static AstNode *p_expr(Parser *p) { return p_atribuicao(p); }
 
-static AstNode *bin(const char *op, AstNode *esq, AstNode *dir) {
-    AstNode *no = ast_new(N_BINARY, op, NULL);
+static AstNode *bin(const char *op, const Token *tok_op,
+                    AstNode *esq, AstNode *dir) {
+    AstNode *no = ast_em(ast_new(N_BINARY, op, NULL), esq->linha, esq->coluna);
+    no->linha2 = tok_op->line;
+    no->coluna2 = tok_op->col;
     ast_add(no, esq);
     ast_add(no, dir);
     return no;
@@ -375,8 +399,8 @@ static const char *op_unario(TokenType t) {
         const char *op;                                                \
         while ((op = tabela(espiar(p, 0)->type)) != NULL) {            \
             Token t = avancar(p);                                      \
+            no = bin(op, &t, no, proximo(p));                          \
             token_free(&t);                                            \
-            no = bin(op, no, proximo(p));                              \
         }                                                              \
         return no;                                                     \
     }
@@ -390,12 +414,10 @@ NIVEL(p_logico_ou,      p_logico_e,       op_ou)
 
 static AstNode *p_atribuicao(Parser *p) {
     AstNode *esq = p_logico_ou(p);
-    /* So trata '=' como atribuicao se o lado esquerdo for destino valido.
-     * Assim `a[1 = 2;` reclama do colchete, como pede o gabarito. */
-    if (conferir(p, TOK_ASSIGN) && (esq->kind == N_ID || esq->kind == N_INDEX)) {
-        Token t = avancar(p);
-        token_free(&t);
-        AstNode *no = ast_new(N_ASSIGN, NULL, NULL);
+    /* qualquer lado esquerdo; o semantico barra `3 = n;` */
+    if (aceitar(p, TOK_ASSIGN)) {
+        AstNode *no = ast_em(ast_new(N_ASSIGN, NULL, NULL),
+                             esq->linha, esq->coluna);
         ast_add(no, esq);
         ast_add(no, p_atribuicao(p));
         return no;
@@ -407,8 +429,8 @@ static AstNode *p_unaria(Parser *p) {
     const char *op = op_unario(espiar(p, 0)->type);
     if (op) {
         Token t = avancar(p);
+        AstNode *no = ast_em(ast_new(N_UNARY, op, NULL), t.line, t.col);
         token_free(&t);
-        AstNode *no = ast_new(N_UNARY, op, NULL);
         ast_add(no, p_unaria(p));
         return no;
     }
@@ -420,7 +442,8 @@ static AstNode *p_posfixa(Parser *p) {
 
     for (;;) {
         if (aceitar(p, TOK_LPAREN)) {
-            AstNode *chamada = ast_new(N_CALL, NULL, NULL);
+            AstNode *chamada = ast_em(ast_new(N_CALL, NULL, NULL),
+                                      no->linha, no->coluna);
             ast_add(chamada, no);
             if (!conferir(p, TOK_RPAREN)) {
                 ast_add(chamada, p_expr(p));
@@ -435,7 +458,8 @@ static AstNode *p_posfixa(Parser *p) {
             no = chamada;
         } else if (aceitar(p, TOK_LBRACKET)) {
             if (conferir(p, TOK_RBRACKET)) erro(p, "esperado expressao no indice");
-            AstNode *idx = ast_new(N_INDEX, NULL, NULL);
+            AstNode *idx = ast_em(ast_new(N_INDEX, NULL, NULL),
+                                  no->linha, no->coluna);
             ast_add(idx, no);
             ast_add(idx, p_expr(p));
             exigir(p, TOK_RBRACKET, "FECHA_COLCHETE");
@@ -448,7 +472,7 @@ static AstNode *p_posfixa(Parser *p) {
 
 static AstNode *lit(Parser *p, const char *tipo) {
     Token t = avancar(p);
-    AstNode *no = ast_new(N_LIT, tipo, t.lexeme);
+    AstNode *no = ast_em(ast_new(N_LIT, tipo, t.lexeme), t.line, t.col);
     token_free(&t);
     return no;
 }
@@ -459,7 +483,7 @@ static AstNode *p_primaria(Parser *p) {
     switch (tok->type) {
         case TOK_ID: {
             Token t = avancar(p);
-            AstNode *no = ast_new(N_ID, t.lexeme, NULL);
+            AstNode *no = ast_em(ast_new(N_ID, t.lexeme, NULL), t.line, t.col);
             token_free(&t);
             return no;
         }

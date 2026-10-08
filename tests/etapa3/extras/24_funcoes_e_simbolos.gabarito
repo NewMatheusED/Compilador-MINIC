@@ -1,0 +1,9 @@
+SEM002 — linha 4, coluna 5: “dobro” já declarado neste escopo; declaração anterior na linha 1, coluna 5 (função int).
+SEM002 — linha 8, coluna 7: “g” já declarado neste escopo; declaração anterior na linha 7, coluna 5 (tipo int).
+SEM014 — linha 9, coluna 16: Parâmetro “p” não pode ter tipo void.
+SEM014 — linha 14, coluna 9: Função “dobro” usada como valor; faltam os parênteses da chamada.
+SEM014 — linha 15, coluna 9: “k” não é uma função (tipo int) e não pode ser chamado.
+SEM013 — linha 16, coluna 5: Destino de atribuição não é atribuível; a função “dobro” não designa uma variável ou elemento de vetor.
+SEM001 — linha 17, coluna 9: Identificador “desconhecida” não declarado neste escopo.
+SEM014 — linha 18, coluna 10: Variável “q” não pode ter tipo void.
+Análise semântica concluída: 8 erros; programa rejeitado.

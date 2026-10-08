@@ -1,0 +1,7 @@
+SEM004 — linha 8, coluna 11: Operador “+” não se aplica a int e bool (expressão “n + b”).
+SEM004 — linha 9, coluna 9: Operador “!” não se aplica a int (expressão “!n”).
+SEM004 — linha 10, coluna 11: Operador “&&” não se aplica a int e bool (expressão “n && b”).
+SEM004 — linha 11, coluna 11: Operador “%” não se aplica a float e int (expressão “f % 2”).
+SEM004 — linha 12, coluna 9: Operador “-” não se aplica a bool (expressão “-b”).
+SEM004 — linha 13, coluna 11: Operador “==” não se aplica a bool e int (expressão “b == n”).
+Análise semântica concluída: 6 erros; programa rejeitado.

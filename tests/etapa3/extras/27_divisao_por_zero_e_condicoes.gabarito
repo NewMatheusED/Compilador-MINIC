@@ -1,0 +1,7 @@
+SEM015 — linha 4, coluna 14: Divisor constante zero em “10 / 0”.
+SEM015 — linha 5, coluna 15: Divisor constante zero em “1.0 / 0.0”.
+SEM015 — linha 6, coluna 13: Divisor constante zero em “n % 0”.
+SEM005 — linha 7, coluna 9: Condição de if deve ter tipo bool; recebeu int (expressão “n + 1”).
+SEM005 — linha 8, coluna 9: Condição de if deve ter tipo bool; recebeu float (expressão “f”).
+SEM005 — linha 9, coluna 12: Condição de while deve ter tipo bool; recebeu int (expressão “n = 3”).
+Análise semântica concluída: 6 erros; programa rejeitado.

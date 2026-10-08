@@ -1,0 +1,4 @@
+SEM002 — linha 2, coluna 9: “a” já declarado neste escopo; declaração anterior na linha 1, coluna 14 (tipo int).
+SEM001 — linha 14, coluna 13: Identificador “i” não declarado neste escopo.
+SEM008 — linha 15, coluna 20: Argumento 2 de “soma”: esperado int, recebido float (expressão “2.0”).
+Análise semântica concluída: 3 erros; programa rejeitado.

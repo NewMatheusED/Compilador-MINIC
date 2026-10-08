@@ -1,0 +1,6 @@
+SEM006 — linha 2, coluna 11: Tamanho do vetor “v” deve ser int; recebeu float (expressão “2.5”).
+SEM006 — linha 3, coluna 11: Tamanho do vetor “w” deve ser positivo; recebeu 0.
+SEM006 — linha 7, coluna 5: “x” não é um vetor (int) e não pode ser indexado.
+SEM013 — linha 8, coluna 5: Destino de atribuição não é atribuível; o vetor “z” não pode ser atribuído como um todo, apenas seus elementos.
+SEM003 — linha 9, coluna 9: Não é possível atribuir int[] a int sem conversão permitida (destino “x”; expressão “z”).
+Análise semântica concluída: 5 erros; programa rejeitado.

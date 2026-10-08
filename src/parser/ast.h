@@ -50,9 +50,15 @@ typedef struct AstNode {
      * e sempre o corpo).  N_VARDECL usa kids[0] = tamanho e kids[1] =
      * inicializador, qualquer um podendo ser NULL. */
     size_t nparams;
+
+    int vetor; /* N_PARAM: int dados[] */
+
+    int linha, coluna;
+    int linha2, coluna2; /* N_FUNCTION: nome, N_BINARY: operador */
 } AstNode;
 
 AstNode *ast_new(NodeKind kind, const char *a, const char *b);
+AstNode *ast_em(AstNode *no, int linha, int coluna);
 void ast_add(AstNode *pai, AstNode *filho);
 void ast_free(AstNode *no);
 

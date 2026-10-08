@@ -1,0 +1,6 @@
+SEM011 — linha 1, coluna 1: A função “a” pode terminar sem retornar int; o laço while com condição “c” pode terminar e alcançar o fim do corpo.
+SEM011 — linha 4, coluna 1: A função “b” pode terminar sem retornar int; o ramo em que “c” é falso alcança o fim do corpo.
+SEM011 — linha 7, coluna 1: A função “d” pode terminar sem retornar int; os ramos em que “c” é verdadeiro e falso alcançam o fim do corpo.
+SEM011 — linha 10, coluna 1: A função “e” pode terminar sem retornar float; o corpo não contém nenhum comando return.
+SEM011 — linha 12, coluna 1: A função “f” pode terminar sem retornar int; o fim do corpo é alcançado sem um comando return.
+Análise semântica concluída: 5 erros; programa rejeitado.

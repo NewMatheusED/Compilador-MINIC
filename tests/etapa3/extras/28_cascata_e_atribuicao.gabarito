@@ -1,0 +1,13 @@
+SEM001 — linha 11, coluna 9: Identificador “x” não declarado neste escopo.
+SEM001 — linha 11, coluna 13: Identificador “y” não declarado neste escopo.
+SEM003 — linha 12, coluna 9: Não é possível atribuir float a int sem conversão permitida (destino “n”; expressão “f = 2”).
+SEM003 — linha 13, coluna 13: Não é possível atribuir float a int sem conversão permitida (destino “n”; expressão “2.5”).
+SEM012 — linha 14, coluna 9: Função “faz” não produz valor (retorno void) e não pode ser usada como operando.
+SEM013 — linha 15, coluna 5: Destino de atribuição não é atribuível; a expressão “n + 1” não designa uma variável ou elemento de vetor.
+SEM013 — linha 16, coluna 5: Destino de atribuição não é atribuível; a chamada “acao()” não designa uma variável ou elemento de vetor.
+SEM013 — linha 17, coluna 6: Destino de atribuição não é atribuível; a atribuição “n = 1” não designa uma variável ou elemento de vetor.
+SEM007 — linha 18, coluna 5: “acao” espera 0 argumentos, mas recebeu 1.
+SEM012 — linha 18, coluna 10: Função “faz” não produz valor (retorno void) e não pode ser usada como argumento.
+SEM012 — linha 19, coluna 9: Função “faz” não produz valor (retorno void) e não pode ser usada como condição.
+SEM012 — linha 20, coluna 12: Função “faz” não produz valor (retorno void) e não pode ser usada como valor de retorno.
+Análise semântica concluída: 12 erros; programa rejeitado.

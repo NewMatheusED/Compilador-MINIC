@@ -28,6 +28,12 @@ AstNode *ast_new(NodeKind kind, const char *a, const char *b) {
     return no;
 }
 
+AstNode *ast_em(AstNode *no, int linha, int coluna) {
+    no->linha = linha;
+    no->coluna = coluna;
+    return no;
+}
+
 void ast_add(AstNode *pai, AstNode *filho) {
     if (pai->nkids == pai->cap) {
         size_t nova = pai->cap ? pai->cap * 2 : 4;
@@ -89,7 +95,7 @@ void ast_print(const AstNode *no) {
             break;
 
         case N_PARAM:
-            printf("%s %s", no->a, no->b);
+            printf("%s %s%s", no->a, no->b, no->vetor ? "[]" : "");
             break;
 
         case N_VARDECL:
