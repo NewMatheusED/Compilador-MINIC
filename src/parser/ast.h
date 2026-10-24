@@ -6,7 +6,8 @@
 /* Nos da AST do MINIC. A impressao segue a mesma notacao de S-expressao
  * usada pelo lado Python (src/parser/minic_ast.py):
  *
- *   Program, Function, Block, VarDecl, If, While, Return, ExprStmt,
+ *   Program, Function, Block, VarDecl, If, While, For, Break, Continue,
+ *   Print, Read, Return, ExprStmt,
  *   Assign, Binary, Unary, Call, Index, Id, Lit
  */
 
@@ -18,6 +19,11 @@ typedef enum {
     N_VARDECL,
     N_IF,
     N_WHILE,
+    N_FOR,
+    N_BREAK,
+    N_CONTINUE,
+    N_PRINT,
+    N_READ,
     N_RETURN,
     N_EXPRSTMT,
     N_ASSIGN,
@@ -48,7 +54,8 @@ typedef struct AstNode {
 
     /* N_FUNCTION: quantos filhos iniciais sao parametros (o ultimo filho
      * e sempre o corpo).  N_VARDECL usa kids[0] = tamanho e kids[1] =
-     * inicializador, qualquer um podendo ser NULL. */
+     * inicializador, qualquer um podendo ser NULL.  N_FOR usa kids[0..2]
+     * = init, cond, passo (podem ser NULL) e kids[3] = corpo. */
     size_t nparams;
 
     int vetor; /* N_PARAM: int dados[] */

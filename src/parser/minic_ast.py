@@ -194,6 +194,47 @@ class While(Node):
 
 
 @dataclass
+class For(Node):
+    init: Optional[Node]
+    cond: Optional[Node]
+    passo: Optional[Node]
+    corpo: Node
+
+    def render(self) -> str:
+        partes = [n.render() if n is not None else "NULL"
+                  for n in (self.init, self.cond, self.passo)]
+        return f"For({','.join(partes)},{self.corpo.render()})"
+
+
+@dataclass
+class Break(Node):
+    def render(self) -> str:
+        return "Break"
+
+
+@dataclass
+class Continue(Node):
+    def render(self) -> str:
+        return "Continue"
+
+
+@dataclass
+class Print(Node):
+    valor: Node
+
+    def render(self) -> str:
+        return f"Print({self.valor.render()})"
+
+
+@dataclass
+class Read(Node):
+    destino: Node
+
+    def render(self) -> str:
+        return f"Read({self.destino.render()})"
+
+
+@dataclass
 class Return(Node):
     valor: Optional[Node] = None
 

@@ -223,6 +223,7 @@ typedef struct {
     size_t ntextos, captextos;
 
     const AstNode *funcao_atual;
+    int lacos;
 } Analisador;
 
 static Simbolo *novo_simbolo(Analisador *an, const char *nome, Categoria cat,
@@ -821,7 +822,39 @@ static void comando(Analisador *an, const AstNode *cmd) {
             break;
         case N_WHILE:
             condicao(an, cmd->kids[0], "while");
+            an->lacos++;
             comando(an, cmd->kids[1]);
+            an->lacos--;
+            break;
+        case N_FOR:
+            if (cmd->kids[0]) expr(an, cmd->kids[0]);
+            if (cmd->kids[1]) condicao(an, cmd->kids[1], "for");
+            if (cmd->kids[2]) expr(an, cmd->kids[2]);
+            an->lacos++;
+            comando(an, cmd->kids[3]);
+            an->lacos--;
+            break;
+        case N_BREAK:
+        case N_CONTINUE:
+            if (an->lacos == 0) {
+                ERRO_NO(an, "SEM016", cmd,
+                        "Comando %s fora de laço; só pode aparecer dentro "
+                        "de while ou for.",
+                        cmd->kind == N_BREAK ? "break" : "continue");
+            }
+            break;
+        case N_PRINT: {
+            Tipo t = valor(an, cmd->kids[0], "argumento de print");
+            if (t.vetor) {
+                ERRO_NO(an, "SEM014", cmd->kids[0],
+                        "O vetor " ABRE_ASPAS "%s" FECHA_ASPAS " não pode ser "
+                        "impresso como um todo, apenas seus elementos.",
+                        texto(an, cmd->kids[0]));
+            }
+            break;
+        }
+        case N_READ:
+            destino(an, cmd->kids[0]);
             break;
         case N_RETURN:
             retorno(an, cmd);
@@ -876,6 +909,9 @@ static const char *motivo_queda(Analisador *an, const AstNode *cmd) {
         if (!entao_ok) return motivo_queda(an, cmd->kids[1]);
         return motivo_queda(an, cmd->kids[2]);
     }
+    if (cmd->kind == N_FOR) {
+        return "o laço for pode terminar e alcançar o fim do corpo";
+    }
     if (cmd->kind == N_WHILE) {
         sb_printf(&sb, "o laço while com condição "
                   ABRE_ASPAS "%s" FECHA_ASPAS " pode terminar e alcanç"
@@ -888,7 +924,9 @@ static const char *motivo_queda(Analisador *an, const AstNode *cmd) {
 static void funcao(Analisador *an, const AstNode *f) {
     const AstNode *anterior = an->funcao_atual;
     const AstNode *corpo = f->kids[f->nkids - 1];
+    int lacos_fora = an->lacos;
     an->funcao_atual = f;
+    an->lacos = 0;
 
     abrir_escopo(an);
     for (size_t i = 0; i < f->nparams; i++) {
@@ -912,6 +950,7 @@ static void funcao(Analisador *an, const AstNode *f) {
                 "terminar sem retornar %s; %s.", f->b, f->a, motivo);
     }
     an->funcao_atual = anterior;
+    an->lacos = lacos_fora;
 }
 
 /* junta as assinaturas antes dos corpos, por causa da recursao */

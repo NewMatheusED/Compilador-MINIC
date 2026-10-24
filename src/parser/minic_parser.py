@@ -12,11 +12,16 @@ Gramatica reconhecida:
     params      -> vazio | param (',' param)*
     param       -> TIPO IDENT ('[' ']')?
     decl_var    -> TIPO IDENT ('[' expr ']')? ('=' expr)? ';'
-    comando     -> bloco | se | enquanto | retorno | decl_var | expr_cmd
+    comando     -> bloco | se | enquanto | para | retorno | break | continue
+                 | print | read | decl_var | expr_cmd
     bloco       -> '{' comando* '}'
     se          -> 'if' '(' expr ')' comando ('else' comando)?
     enquanto    -> 'while' '(' expr ')' comando
+    para        -> 'for' '(' expr? ';' expr? ';' expr? ')' comando
     retorno     -> 'return' expr? ';'
+    break / continue -> ('break' | 'continue') ';'
+    print       -> 'print' '(' expr ')' ';'
+    read        -> 'read' '(' expr ')' ';'
     expr_cmd    -> expr ';'
 
     expr        -> atribuicao
@@ -51,8 +56,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
 from lexer import Lexer, Token, TokenType  # noqa: E402
 
 from minic_ast import (  # noqa: E402
-    Assign, Binary, Block, Call, ExprStmt, Function, Id, If, Index, Lit,
-    Node, Param, Program, Return, Unary, VarDecl, While,
+    Assign, Binary, Block, Break, Call, Continue, ExprStmt, For, Function,
+    Id, If, Index, Lit, Node, Param, Print, Program, Read, Return, Unary,
+    VarDecl, While,
 )
 
 
@@ -292,8 +298,17 @@ class Parser:
             return self.comando_if()
         if tok.type == TokenType.KW_WHILE:
             return self.comando_while()
+        if tok.type == TokenType.KW_FOR:
+            return self.comando_for()
         if tok.type == TokenType.KW_RETURN:
             return self.comando_return()
+        if tok.type in (TokenType.KW_BREAK, TokenType.KW_CONTINUE):
+            kw = self.avancar()
+            self.exigir(TokenType.SEMI, "PONTO_E_VIRGULA")
+            classe = Break if kw.type == TokenType.KW_BREAK else Continue
+            return classe().em(kw.line, kw.col)
+        if tok.type in (TokenType.KW_PRINT, TokenType.KW_READ):
+            return self.comando_print_read()
         if tok.type == TokenType.KW_ELSE:
             self.erro("token KW_ELSE inesperado (nao ha if correspondente)")
         if tok.type in (TokenType.RBRACE, TokenType.EOF):
@@ -332,6 +347,28 @@ class Parser:
         cond = self.expr()
         self.exigir(TokenType.RPAREN, "FECHA_PAREN")
         return While(cond, self.comando()).em(kw.line, kw.col)
+
+    def comando_for(self) -> For:
+        kw = self.avancar()
+        self.exigir(TokenType.LPAREN, "ABRE_PAREN")
+        init = None if self.conferir(TokenType.SEMI) else self.expr()
+        self.exigir(TokenType.SEMI, "PONTO_E_VIRGULA")
+        cond = None if self.conferir(TokenType.SEMI) else self.expr()
+        self.exigir(TokenType.SEMI, "PONTO_E_VIRGULA")
+        passo = None if self.conferir(TokenType.RPAREN) else self.expr()
+        self.exigir(TokenType.RPAREN, "FECHA_PAREN")
+        return For(init, cond, passo, self.comando()).em(kw.line, kw.col)
+
+    def comando_print_read(self) -> Node:
+        kw = self.avancar()
+        self.exigir(TokenType.LPAREN, "ABRE_PAREN")
+        if self.conferir(TokenType.RPAREN):
+            self.erro("esperado expressao")
+        valor = self.expr()
+        self.exigir(TokenType.RPAREN, "FECHA_PAREN")
+        self.exigir(TokenType.SEMI, "PONTO_E_VIRGULA")
+        classe = Print if kw.type == TokenType.KW_PRINT else Read
+        return classe(valor).em(kw.line, kw.col)
 
     def comando_return(self) -> Return:
         kw = self.avancar()

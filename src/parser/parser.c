@@ -288,6 +288,45 @@ static AstNode *p_comando_while(Parser *p) {
     return no;
 }
 
+static AstNode *p_comando_for(Parser *p) {
+    Token kw = avancar(p);
+    AstNode *no = ast_em(ast_new(N_FOR, NULL, NULL), kw.line, kw.col);
+    token_free(&kw);
+
+    exigir(p, TOK_LPAREN, "ABRE_PAREN");
+    ast_add(no, conferir(p, TOK_SEMI) ? NULL : p_expr(p));
+    exigir(p, TOK_SEMI, "PONTO_E_VIRGULA");
+    ast_add(no, conferir(p, TOK_SEMI) ? NULL : p_expr(p));
+    exigir(p, TOK_SEMI, "PONTO_E_VIRGULA");
+    ast_add(no, conferir(p, TOK_RPAREN) ? NULL : p_expr(p));
+    exigir(p, TOK_RPAREN, "FECHA_PAREN");
+    ast_add(no, p_comando(p));
+    return no;
+}
+
+static AstNode *p_comando_salto(Parser *p) {
+    Token kw = avancar(p);
+    NodeKind k = kw.type == TOK_KW_BREAK ? N_BREAK : N_CONTINUE;
+    AstNode *no = ast_em(ast_new(k, NULL, NULL), kw.line, kw.col);
+    token_free(&kw);
+    exigir(p, TOK_SEMI, "PONTO_E_VIRGULA");
+    return no;
+}
+
+static AstNode *p_comando_print_read(Parser *p) {
+    Token kw = avancar(p);
+    NodeKind k = kw.type == TOK_KW_PRINT ? N_PRINT : N_READ;
+    AstNode *no = ast_em(ast_new(k, NULL, NULL), kw.line, kw.col);
+    token_free(&kw);
+
+    exigir(p, TOK_LPAREN, "ABRE_PAREN");
+    if (conferir(p, TOK_RPAREN)) erro(p, "esperado expressao");
+    ast_add(no, p_expr(p));
+    exigir(p, TOK_RPAREN, "FECHA_PAREN");
+    exigir(p, TOK_SEMI, "PONTO_E_VIRGULA");
+    return no;
+}
+
 static AstNode *p_comando_return(Parser *p) {
     Token kw = avancar(p);
     AstNode *no = ast_em(ast_new(N_RETURN, NULL, NULL), kw.line, kw.col);
@@ -321,7 +360,14 @@ static AstNode *p_comando(Parser *p) {
     if (tok->type == TOK_LBRACE) return p_bloco(p);
     if (tok->type == TOK_KW_IF)     return p_comando_if(p);
     if (tok->type == TOK_KW_WHILE)  return p_comando_while(p);
+    if (tok->type == TOK_KW_FOR)    return p_comando_for(p);
     if (tok->type == TOK_KW_RETURN) return p_comando_return(p);
+    if (tok->type == TOK_KW_BREAK || tok->type == TOK_KW_CONTINUE) {
+        return p_comando_salto(p);
+    }
+    if (tok->type == TOK_KW_PRINT || tok->type == TOK_KW_READ) {
+        return p_comando_print_read(p);
+    }
 
     if (tok->type == TOK_KW_ELSE) {
         erro(p, "token KW_ELSE inesperado (nao ha if correspondente)");
@@ -529,7 +575,7 @@ AstNode *parse_source(const char *src, ErroSintatico *erro_saida) {
     lexer_set_error_sink(&p.lx, silenciar_lexico);
     houve_erro_lexico = 0;
 
-    AstNode *programa = ast_new(N_PROGRAM, NULL, NULL);
+    AstNode *volatile programa = ast_new(N_PROGRAM, NULL, NULL);
 
     if (setjmp(p.escape) != 0) {
         ast_free(programa);

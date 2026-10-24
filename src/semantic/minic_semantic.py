@@ -9,8 +9,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 "..", "parser"))
 
 from minic_ast import (  # noqa: E402
-    Assign, Binary, Block, Call, ExprStmt, Function, Id, If, Index, Lit,
-    Node, Param, Program, Return, Unary, VarDecl, While,
+    Assign, Binary, Block, Break, Call, Continue, ExprStmt, For, Function,
+    Id, If, Index, Lit, Node, Param, Print, Program, Read, Return, Unary,
+    VarDecl, While,
 )
 
 
@@ -178,6 +179,7 @@ class AnalisadorSemantico:
         self.tabela = TabelaSimbolos()
         self.diagnosticos: List[Diagnostico] = []
         self.funcao_atual: Optional[Function] = None
+        self.lacos = 0
 
 
     def erro(self, codigo: str, no_ou_pos, mensagem: str) -> None:
@@ -247,7 +249,9 @@ class AnalisadorSemantico:
 
     def funcao(self, f: Function) -> None:
         anterior = self.funcao_atual
+        lacos_fora = self.lacos
         self.funcao_atual = f
+        self.lacos = 0
         self.tabela.abrir_escopo()
         for p in f.params:
             if p.tipo == "void":
@@ -266,6 +270,7 @@ class AnalisadorSemantico:
                       f"A função {_aspas(f.nome)} pode terminar sem retornar "
                       f"{f.tipo}; {motivo}.")
         self.funcao_atual = anterior
+        self.lacos = lacos_fora
 
     def decl_var(self, d: VarDecl) -> None:
         sim = self.simbolo_var(d)
@@ -313,11 +318,38 @@ class AnalisadorSemantico:
                 self.comando(cmd.senao)
         elif isinstance(cmd, While):
             self.condicao(cmd.cond, "while")
-            self.comando(cmd.corpo)
+            self.corpo_laco(cmd.corpo)
+        elif isinstance(cmd, For):
+            if cmd.init is not None:
+                self.expr(cmd.init)
+            if cmd.cond is not None:
+                self.condicao(cmd.cond, "for")
+            if cmd.passo is not None:
+                self.expr(cmd.passo)
+            self.corpo_laco(cmd.corpo)
+        elif isinstance(cmd, (Break, Continue)):
+            if self.lacos == 0:
+                nome = "break" if isinstance(cmd, Break) else "continue"
+                self.erro("SEM016", cmd,
+                          f"Comando {nome} fora de laço; só pode aparecer "
+                          f"dentro de while ou for.")
+        elif isinstance(cmd, Print):
+            t = self.valor(cmd.valor, "argumento de print")
+            if t.vetor:
+                self.erro("SEM014", cmd.valor,
+                          f"O vetor {_aspas(texto(cmd.valor))} não pode ser "
+                          f"impresso como um todo, apenas seus elementos.")
+        elif isinstance(cmd, Read):
+            self.destino(cmd.destino)
         elif isinstance(cmd, Return):
             self.retorno(cmd)
         elif isinstance(cmd, ExprStmt):
             self.expr(cmd.expr)
+
+    def corpo_laco(self, corpo: Node) -> None:
+        self.lacos += 1
+        self.comando(corpo)
+        self.lacos -= 1
 
     def condicao(self, cond: Node, comando: str) -> None:
         t = self.valor(cond, "condição")
@@ -385,6 +417,8 @@ class AnalisadorSemantico:
             if not entao_ok:
                 return self.motivo_queda(cmd.entao)
             return self.motivo_queda(cmd.senao)
+        if isinstance(cmd, For):
+            return "o laço for pode terminar e alcançar o fim do corpo"
         if isinstance(cmd, While):
             return (f"o laço while com condição {_aspas(texto(cmd.cond))} "
                     f"pode terminar e alcançar o fim do corpo")

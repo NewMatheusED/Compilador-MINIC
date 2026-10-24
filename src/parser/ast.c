@@ -129,6 +129,30 @@ void ast_print(const AstNode *no) {
             fputc(')', stdout);
             break;
 
+        case N_FOR:
+            fputs("For(", stdout);
+            for (int i = 0; i < 4; i++) {
+                if (i > 0) fputc(',', stdout);
+                ast_print(no->kids[i]);
+            }
+            fputc(')', stdout);
+            break;
+
+        case N_BREAK:
+            fputs("Break", stdout);
+            break;
+
+        case N_CONTINUE:
+            fputs("Continue", stdout);
+            break;
+
+        case N_PRINT:
+        case N_READ:
+            fputs(no->kind == N_PRINT ? "Print(" : "Read(", stdout);
+            ast_print(no->kids[0]);
+            fputc(')', stdout);
+            break;
+
         case N_RETURN:
             fputs("Return(", stdout);
             ast_print(no->kids[0]);
